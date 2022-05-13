@@ -14,14 +14,14 @@
   - Graphics with **popup template**
 
     - [ ] line
-      - [ ] add
-      - [ ] remove
-      - [ ] config color
+      - [x] add
+      - [x] remove
+      - [x] config color
       - [ ] config template
     - [ ] point
-      - [ ] add
-      - [ ] remove
-      - [ ] config color
+      - [x] add
+      - [x] remove
+      - [x] config color
       - [ ] config template
     - [ ] polygon
       - [ ] add

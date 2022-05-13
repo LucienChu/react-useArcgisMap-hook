@@ -1,0 +1,10 @@
+{
+  // for jest intellisense
+  "typeAcquisition": { "include": ["jest"] },
+
+  // for static import
+  "compilerOptions": {
+    "baseUrl": "src"
+  },
+  "include": ["src"]
+}

@@ -3,7 +3,7 @@ import "./App.css";
 
 function App() {
   return (
-    <div className="App">
+    <div>
       <MapWithCustomGraphic center={[43.65107, -79.347015]} />
     </div>
   );

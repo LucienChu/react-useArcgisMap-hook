@@ -1,11 +1,16 @@
+// arcgis api reference https://developers.arcgis.com/javascript/latest/api-reference/
 import React, { useEffect, useState, useCallback, useRef } from "react";
 import { loadModules, setDefaultOptions } from "esri-loader";
+import {
+  DEFAULT_ZOOM_LEVEL,
+  DEFAULT_GRAPHIC_COLOR,
+  DEFAULT_POPUP_TEMPLATE,
+} from "./arcgisMapDefaults";
+
 setDefaultOptions({
   version: "4.21",
   css: true,
 });
-
-const DEFAULT_ZOOM_LEVEL = 13;
 
 /**
  *
@@ -137,43 +142,6 @@ function useArcgisMap(options = {}) {
   //   takeScreenshot
 
   /*================================================== create methods START ================================================== */
-  /**
-   *
-   * @param {number} lat latitude
-   * @param {longitude} lng longitude
-   * @param {[number]} color rgb color in array format, ie: [rr, gg, bb]
-   * @returns
-   */
-  function createPoint(lat, lng, color = [226, 119, 40]) {
-    const GraphicClass = graphicRef.current;
-
-    if (GraphicClass) {
-      const point = {
-        type: "point", // autocasts as new Point()
-        latitude: lat,
-        longitude: lng,
-      };
-
-      // Create a symbol for drawing the point
-      const markerSymbol = {
-        type: "simple-marker", // autocasts as new SimpleMarkerSymbol()
-        color: color,
-      };
-
-      // Create a graphic and add the geometry and symbol to it
-      const pointGraphic = new GraphicClass({
-        geometry: point,
-        symbol: markerSymbol,
-        attributes: {
-          userName: "lucien",
-        },
-        popupTemplate: popupTemplateGraphic,
-      });
-
-      return pointGraphic;
-    }
-    return null;
-  }
 
   function createPopupTemplate() {}
 
@@ -183,39 +151,113 @@ function useArcgisMap(options = {}) {
    *
    * @param {number} lat latitude
    * @param {number} lng longitude
-   * @param {[number]} color rgb color in array format, ie: [rr, gg, bb]
+   * @param {[number]} color rgb color in array format, ie: [rr, gg, bb, opacity]
+   *
+   * @returns {null | object} return generate point graphic object, otherwise, null
    * https://developers.arcgis.com/javascript/latest/api-reference/esri-Graphic.html
    */
-  function addGraphicPoint(lat, lng, color = [226, 119, 40]) {
+  function addGraphicPoint(lat, lng, color = DEFAULT_GRAPHIC_COLOR) {
     // First create a point geometry
 
     const GraphicClass = graphicRef.current;
 
-    if (GraphicClass && mapView) {
-      const point = {
-        type: "point", // autocasts as new Point()
-        latitude: lat,
-        longitude: lng,
-      };
+    if (!GraphicClass || !mapView) return null;
 
-      // Create a symbol for drawing the point
-      const markerSymbol = {
-        type: "simple-marker", // autocasts as new SimpleMarkerSymbol()
-        color: color,
-      };
+    const point = {
+      type: "point", // autocasts as new Point()
+      latitude: lat,
+      longitude: lng,
+    };
 
-      // Create a graphic and add the geometry and symbol to it
-      const pointGraphic = new GraphicClass({
-        geometry: point,
-        symbol: markerSymbol,
-        attributes: {
-          userName: "lucien",
-        },
-        popupTemplate: popupTemplateGraphic,
-      });
+    // Create a symbol for drawing the point
+    const markerSymbol = {
+      type: "simple-marker", // autocasts as new SimpleMarkerSymbol()
+      color: color,
+      outline: {
+        color: [255, 255, 255], // White
+        width: 2,
+      },
+    };
 
-      mapView.graphics.add(pointGraphic);
-    }
+    // Create a graphic and add the geometry and symbol to it
+    const pointGraphic = new GraphicClass({
+      geometry: point,
+      symbol: markerSymbol,
+      attributes: {
+        userName: "lucien",
+      },
+      popupTemplate: DEFAULT_POPUP_TEMPLATE,
+    });
+
+    mapView.graphics.add(pointGraphic);
+
+    return pointGraphic;
+  }
+
+  /**
+   *
+   * generate a line graphic on the map view and return the instance of the line object, for removal purpose
+   *
+   * @param {[number]} coordinates array of coordinate, each coordindate shuold be in form of [latitude, longitude]
+   * @param {[number]} color rgb color in array format, ie: [rr, gg, bb, opacity]
+   *
+   * @returns {null | object} return generate polyline graphic object, otherwise, null
+   */
+  function addGraphicLine(coordinates, color = DEFAULT_GRAPHIC_COLOR) {
+    const Graphic = graphicRef.current;
+
+    if (!Graphic || !mapView) return null;
+    // Create a line geometry
+    const polyline = {
+      type: "polyline",
+      paths: coordinates,
+    };
+
+    const simpleLineSymbol = {
+      type: "simple-line",
+      color: color,
+      width: 2,
+    };
+
+    const polylineGraphic = new Graphic({
+      geometry: polyline,
+      symbol: simpleLineSymbol,
+      popupTemplate: popupTemplateGraphic,
+    });
+
+    mapView.graphics.add(polylineGraphic);
+
+    return polylineGraphic;
+  }
+
+  function addGraphicPolygon(coordinates, color = DEFAULT_GRAPHIC_COLOR) {
+    const Graphic = graphicRef.current;
+
+    if (!Graphic | !mapView) return null;
+    // Create a polygon geometry
+    const polygon = {
+      type: "polygon",
+      rings: coordinates,
+    };
+
+    const simpleFillSymbol = {
+      type: "simple-fill",
+      color: color, // Orange, opacity 80%
+      outline: {
+        color: [255, 255, 255],
+        width: 2,
+      },
+    };
+
+    const polygonGraphic = new Graphic({
+      geometry: polygon,
+      symbol: simpleFillSymbol,
+      popupTemplate: DEFAULT_POPUP_TEMPLATE,
+    });
+
+    mapView.graphics.add(polygonGraphic);
+
+    return polygonGraphic;
   }
 
   /**
@@ -264,6 +306,8 @@ function useArcgisMap(options = {}) {
     getScreenshot,
     removeGraphic,
     clearAllGraphics,
+    addGraphicLine,
+    addGraphicPolygon,
   };
   return { arcgisProps, arcgisUtils };
 }
